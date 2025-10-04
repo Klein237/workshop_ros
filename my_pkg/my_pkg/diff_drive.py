@@ -128,6 +128,7 @@ class DiffDriveNode(Node):
         """Boucle d’exécution: diriger le robot vers la cible, publier le feedback, renvoyer le résultat."""
         target = goal_handle.request.target
         feedback_msg = Goto.Feedback()
+        
         self.get_logger().info(f'Executing goal to: ({target.x}, {target.y})')
        
         while rclpy.ok():

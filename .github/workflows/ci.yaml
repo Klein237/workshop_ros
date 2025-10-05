@@ -1,45 +1,19 @@
-name: ROS 2 CI
+name: CI (ROS 2 Jazzy)
 
 on:
   push:
-    branches: [ "**" ]
   pull_request:
-    branches: [ "**" ]
 
 jobs:
-  build-and-test:
-    name: Build & Test (${{ matrix.ros_distro }} / ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { os: ubuntu-22.04, ros_distro: humble }
-          - { os: ubuntu-24.04, ros_distro: jazzy }
-
+  build-test:
+    runs-on: ubuntu-24.04
     env:
-      DEBIAN_FRONTEND: noninteractive
-      ROS_DISTRO: ${{ matrix.ros_distro }}
-      # Active ccache pour accélérer les builds C/C++
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CCACHE_BASEDIR: ${{ github.workspace }}
-
+      ROS_DISTRO: jazzy
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      # (Optionnel) Cache ccache pour accélérer les rebuilds
-      - name: Cache ccache
-        uses: actions/cache@v4
-        with:
-          path: .ccache
-          key: ccache-${{ matrix.ros_distro }}-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', '**/package.xml') }}
-          restore-keys: |
-            ccache-${{ matrix.ros_distro }}-${{ runner.os }}-
-
-      - name: Setup ROS 2 apt repos
+      - name: Setup ROS 2 apt repo
         run: |
           sudo apt-get update
           sudo apt-get install -y curl gnupg lsb-release
@@ -49,45 +23,34 @@ jobs:
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" \
             | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
-      - name: Install ROS 2 and dev tools
+      - name: Install ROS 2 (minimal) + tools
         run: |
           sudo apt-get update
-          # Choisis le méta-paquet adapté à ton besoin (ros-<distro>-desktop|ros-base)
-          sudo apt-get install -y ros-$ROS_DISTRO-ros-base \
-                                  python3-colcon-common-extensions \
-                                  python3-vcstool \
-                                  python3-rosdep \
-                                  build-essential \
-                                  ccache
-          echo "/usr/lib/ccache" | sudo tee /etc/ld.so.conf.d/ccache.conf
-          sudo ldconfig
-          echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a $GITHUB_ENV
-          # Setup ROS env
-          echo "source /opt/ros/$ROS_DISTRO/setup.sh" >> $GITHUB_ENV
+          sudo apt-get install -y \
+            ros-jazzy-ros-base \
+            python3-colcon-common-extensions \
+            python3-rosdep \
+            python3-vcstool
 
-      - name: Init & update rosdep
+      - name: Init rosdep
         run: |
           sudo rosdep init || true
           rosdep update
-        env:
-          # Nécessaire pour utiliser rosdep sans sudo
-          ROS_PYTHON_VERSION: "3"
 
-      - name: Resolve dependencies with rosdep
+      - name: Install package dependencies
         shell: bash
         run: |
-          source /opt/ros/$ROS_DISTRO/setup.bash
-          # Installe toutes les dépendances déclarées dans package.xml
+          source /opt/ros/jazzy/setup.bash
+          # Tes deux paquets sont à la racine : rosdep parcourra le dépôt
           rosdep install --from-paths . --ignore-src -r -y
 
-      - name: Build (colcon)
+      - name: Build
         shell: bash
         run: |
-          source /opt/ros/$ROS_DISTRO/setup.bash
-          colcon build --event-handlers console_direct+ --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          source /opt/ros/jazzy/setup.bash
+          colcon build --event-handlers console_direct+
 
-      - name: Test (ctest/pytest via colcon)
-        if: ${{ success() }}
+      - name: Test
         shell: bash
         run: |
           source install/setup.bash

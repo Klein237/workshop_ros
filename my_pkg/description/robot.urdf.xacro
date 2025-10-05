@@ -76,8 +76,8 @@
         </xacro:inertial_cylinder>
     </link>
 
-    <joint name="chassis_to_wheel_left" type="fixed">
-        <parent link="base_link"/>
+    <joint name="chassis_to_wheel_left" type="continuous">
+        <parent link="chassis"/>
         <child link="wheel_left"/>
         <origin xyz="0 ${chassis_width/2 + 0.03} ${0.05/2}" rpy="1.57 0 0"/>
         <axis xyz="0 0 1"/>

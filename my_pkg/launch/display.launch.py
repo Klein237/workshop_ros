@@ -10,7 +10,8 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     pkg_path = get_package_share_directory('my_pkg')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
-    xacro_file = os.path.join(pkg_path, 'description', 'robot.urdf.xacro')
+
+    xacro_file = os.path.join(pkg_path, 'description', 'robot_all.urdf.xacro')
     robot_desc = xacro.process_file(xacro_file).toxml()
 
     gz_sim = IncludeLaunchDescription(
@@ -33,9 +34,9 @@ def generate_launch_description():
             parameters=[{'robot_description': robot_desc}]
         ),
         Node(
-            package='joint_state_publisher_gui',
-            executable='joint_state_publisher_gui',
-            name='joint_state_publisher_gui'
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            name='joint_state_publisher'
         ),
         Node(
             package='rviz2',
@@ -51,7 +52,7 @@ def generate_launch_description():
             arguments=[
                 '-topic', '/robot_description',
                 '-name', 'bot',
-                '-allow_renaming', 'true',
+                '-allow_renaming', 'true',         # permet de faire le robot dans gz sim 
                 '-x', '0.0',
                 '-y', '0.0',
                 '-z', '0.1',

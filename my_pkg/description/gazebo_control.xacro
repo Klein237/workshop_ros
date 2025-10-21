@@ -9,8 +9,8 @@
 
             <left_joint>chassis_to_wheel_left</left_joint>
             <right_joint>chassis_to_wheel_right</right_joint>
-            <wheel_separation>0.297</wheel_separation>
-            <wheel_radius>0.033</wheel_radius>
+            <wheel_separation>0.20</wheel_separation>
+            <wheel_radius>0.05</wheel_radius>
             
             <topic>cmd_vel</topic>
             <max_linear_acceleration>0.33</max_linear_acceleration>

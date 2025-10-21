@@ -28,6 +28,7 @@ setup(
     entry_points={
         'console_scripts': [ 'diff_drive_node = my_pkg.diff_drive:main',
                                 'ghish_node = my_pkg.ghish_node:main',
+                                'detect_node = my_pkg.detect:main',
                                 
         ],
     },

@@ -5,6 +5,8 @@ from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Bool
 from std_msgs.msg import String
+from my_interface.msg import Detect
+
 
 
 class DetectNode(Node):
@@ -19,6 +21,7 @@ class DetectNode(Node):
         )
 
         self.pub = self.create_publisher(String, "obstacle_detected", 10)
+        self.pub_obs = self.create_publisher(Detect, "info_obs", 10)
 
     def scan_callback(self, msg: LaserScan):
         zone = {}
@@ -43,9 +46,18 @@ class DetectNode(Node):
             if obstacle_detected:
                 break
 
-        msg_out = Bool()
-        msg_out.data = obstacle_detected
+
+        msg_info = Detect()
+        
+        msg_info.detect = obstacle_detected
+        
+        msg_info.zone = key if obstacle_detected else "none"
+
+        msg_out = String()
+        msg_out.data = key if obstacle_detected else "none" 
+
         self.pub.publish(msg_out)
+        self.pub_obs.publish(msg_info)
 
 def capture(capture):
     if capture:

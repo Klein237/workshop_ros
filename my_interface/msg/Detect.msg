@@ -1,0 +1,2 @@
+string zone
+bool detect
